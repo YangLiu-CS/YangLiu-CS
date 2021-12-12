@@ -1,0 +1,154 @@
+<!DOCTYPE HTML>
+
+<html>
+	<head>
+		<title>ArmTroi</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+		<link rel="stylesheet" href="assets/css/ArmTroi.css" />
+		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+	</head>
+
+	<body>
+		<div id="wrapper_all">
+
+			<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- One -->
+				<section id="one">
+					<div class="container">
+						<header class="major">
+							<h2>ArmTroi</h2>
+						</header>
+						<h1>Real-time Arm Skeleton Tracking using a Smartwatch</h1>
+					</div>
+				</section>
+
+				<!-- Two -->
+				<h3>Overview</h3>
+				<section id="two">
+					<div class="container">
+						<p>ArmTroi can achieve real-time 3D arm skeleton tracking using a smartwatch. The skeleton of each arm is determined from the locations of the elbow and wrist, whereas a smartwatch only senses a single point from the wrist. Result shows that the potential solution space is huge. This underconstrained nature fundamentally challenges the achievement of accurate and real-time arm skeleton tracking. In this study, we propose Hidden Markov Model (HMM) state reorganization and hierarchical search two methods to improve the heavyweight computation of the state-of-art arm tracking model [MobiSys'16] and achieve real-time tracking even on mobile phone.</p>
+					</div>
+				</section>
+
+				<!-- Three -->
+				<!-- <h3>Design principle [MobiSys'16]</h3>
+				<section id="three">
+					<div class="container">
+						<div class="features">
+							<article>
+								<a href="#" class="image"><img src="images/Design-Coordinate.jpg" alt="" /></a>
+								<div class="inner">
+									Determining an arm's skeleton needs to confirm two parameters: elbow location and wrist orientation in the swivel coordinate system (the above figure). Once they are determined, the wrist location can become available. In particular, the wrist orientation can be indirectly measured from the smartwatch. Thus, the remaining task is determining the elbow location through two phases:
+									<li><i class="icon-li icon-ok"></i>
+										<b>Off-line phase</b>: From the kinematic model, [MobiSys'16] observes that all possible elbow locations are within a limited range given one measured wrist orientation, denoted as <i>point cloud</i> as shown in the above figure. In the off-line phase, for each wrist orientation, we builds a library to store corresponding point cloud for the user.
+									</li>
+									<li><i class="icon-li icon-ok"></i>
+										<b>Recovery phase</b>: When the user's arm is moving, the acceleration of the elbow can be calculated from the reported acceleration of the smartwatch, denoted as <i>Acc<sub>measure</sub></i>. After T time stamps, we have T point clouds based on each wrist orientation and can generate a feasible moving trace of the elbow by selecting any one location from each point cloud to infer the corresponding acceleration trace, <i>Acc<sub>infer</sub></i>. Therefore, the main task is to choose the elbow location trace whose <i>Acc<sub>infer</sub></i> matches <i>Acc<sub>measure</sub></i> best.
+									</li>
+								</div>
+							</article>
+						</div>
+					</div>
+				</section> -->
+
+				<!-- Three -->
+<!-- 				<h3>Complexity</h3>
+				<section id="three">
+					<div class="container">
+						<div class="features">
+							<article>
+								<div class="inner">
+									This problem can be formulated using the HMM with Viterbi algorithm. Each HMM state in [MobiSys'16] is defined as a pair of elbow locations among two consecutive time stamps. The search space of each HMM state is <i>O(N<sup>2</sup>)</i>, and the solution complexity is <i>O(N<sup>4</sup>T)</i>, which can be reduced to <i>O(N<sup>3</sup>T)</i> by leveraging the location continuity constraint. The dominant factor that slows down recovery is the <i>O(N<sup>3</sup>)</i> term as the O(T) term is already downsampled from default 50Hz to 5Hz. We propose the following techniques to further diminish the <i>O(N<sup>3</sup>)</i> term and the latency performance can be improved from 10x latency on desktop to occur in <b>real time</b> even on mobile phone.
+								</div>
+							</article>
+						</div>
+					</div>
+				</section> -->
+
+				<!-- Four -->
+				<!-- <h3>HMM State Reorganization</h3>
+				<section id="four">
+					<div class="container">
+						<div class="features">
+							<article>
+								<a href="#" class="image"><img src="images/Design-State.jpg" alt="" /></a>
+								<div class="inner">
+									As shown in the above figure, the transition from <i>s<sub>1</sub></i> to <i>s<sub>2</sub></i> can be approximated as: <i>s'<sub>1</sub></i> to <i>s'<sub>2</sub></i>, which also preserves all possible acceleration values cross the first three point clouds. The advantage of this update is that starting from the fourth point cloud (after <i>t<sub>2</sub></i> in the above figure(b)), all the remaining states can be defined as the elbow locations in the current point cloud, which essentially reduces the possible paths from the states in the above figure(a). Only the first state has size <i>O(N<sup>2</sup>)</i>, whereas the sizes of all the remaining states are <i>O(N)</i>, e.g., the overall search space <i>S</i> is nearly <i>O(N)</i>. Therefore, search complexity is decreased to <i>O(N<sup>2</sup>T)</i>.
+								</div>
+							</article>
+						</div>
+					</div>
+				</section> -->
+
+				<!-- Five -->
+				<!-- <h3>Hierarchical Search</h3>
+				<section id="five">
+					<div class="container">
+						<div class="features">
+							<article>
+								<a href="#" class="image"><img src="images/Design-Search.jpg" alt="" /></a>
+								<div class="inner">
+									We propose to conduct the search in a hierarchical manner. In particular, we first conduct downsampling for point clouds through grouping every <i>n<sub>1</sub></i> nearby locations in each cloud into <i>O(N/n<sub>1</sub>)</i> regions and use the centroid of each region to form a coarse-level search space. After performing the first round of search on this coarse-level search space, the most likely region can be determined for each time step, as shown in the above figure. The complexity for completing this round of search is <i>O((N/n<sub>1</sub>)<sup>2</sup>T)</i>.</br>
+
+									We can immediately launch the next round of search after selecting four regions from the first round (nearly in parallel) while focusing on these selected regions. In this round, the effective point clouds are merely ``shrunk'' to these selected regions of size <i>O(n<sub>1</sub>)</i>, as shown in the above figure. In principle, we can further divide each selected region into sub-regions again. In our implementation, we adopt a two-layer search, thus the time complexity of the second round search is <i>O(n<sub>1</sub>)<sup>2</sup>T</i>. Thus, complexity decreases from <i>O(N<sup>2</sup>T)</i> to <i>O((N/n<sub>1</sub>)<sup>2</sup>T) + O(n<sub>1</sub>)<sup>2</sup>T</i>, where <i>n<sub>1</sub> << N</i>.
+								</div>
+							</article>
+						</div>
+					</div>
+				</section> -->
+
+				<!-- Six -->
+				<h3>Demo Video</h3>
+				<section id="six">
+					<div class="container">
+						<iframe width="560" height="315" src="https://www.youtube.com/embed/vmi3jffgvyE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+					</div>
+				</section>
+
+				<!-- Seven -->
+				<h3>Publication</h3>
+				<section id="seven">
+					<div class="container">
+						<h5>Real-time Arm Skeleton Tracking and Gesture Inference Tolerant to Missing Wearable Sensors</h5>
+						<p><b>Yang Liu</b>, Zhenjiang Li, Zhidan Liu, Kaishun Wu</p>
+						<p>ACM MobiSys, 2019</p>
+						<a href="paper/2019-MobiSys-ArmTroi.pdf"><b>[<font color=#6495ED>pdf</font>]</b></a>
+						<a href="slides/2019-MobiSys-ArmTroi-slides.pdf"><b>[<font color=#6495ED>slides</font>]</b></a>
+						<a href="https://github.com/YangLiu-CS/ArmTroi"><b>[<font color=#6495ED>source code</font>]</b></a>
+					</div>
+				</section>
+
+				<!-- Eight -->
+				<h3>Cite ArmTroi</h3>
+				<section id="eight">
+					<div class="container">
+						<p>@inproceedings{liu2019real,</br>
+  								title={Real-time arm skeleton tracking and gesture inference tolerant to missing wearable sensors},</br>
+  								author={Liu, Yang and Li, Zhenjiang and Liu, Zhidan and Wu, Kaishun},</br>
+  								booktitle={Proceedings of the 17th Annual International Conference on Mobile Systems, Applications, and Services},</br>
+  								pages={287--299},</br>
+  								year={2019}</br>
+							}
+						</p>
+					</div>
+				</section>
+				
+			</div>
+		
+		</div>
+
+			<!-- Scripts -->
+			<script src="http://cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollzer.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/skel.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
